@@ -1,9 +1,10 @@
 const { assert } = require('chai');
 
+// eslint-disable-next-line no-undef
 const SocialNetwork = artifacts.require('./SocialNetwork.sol');
 require('chai')
   .use(require('chai-as-promised'))
-  .should()
+  .should();
 
   contract('SocialNetwork', ([deployer, author, tipper]) => {
     let socialNetwork
@@ -85,7 +86,7 @@ require('chai')
 
         // FAILURE: Tries to tip a post that does not exist
         await socialNetwork.tipPost(99, {from: tipper, value: web3.utils.toWei('1', 'Ether')}).should.be.rejected;
-        
+
       })
     })
 
