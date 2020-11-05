@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import logo from '../logo.png';
 import Web3 from 'web3';
 import './App.css';
+import SocialNetwork from '../abis/SocialNetwork.json';
 import Navbar from './Navbar';
 // Web3.js connects to the blockchain
 // metamask will connect the browser to the blockchain
@@ -11,6 +12,9 @@ class App extends Component {
     super(props);
     this.state = {
       account: '',
+      socialNetwork: null,
+      postCount: 0,
+      posts: []
     }
   }
   async componentWillMount() { // WARNING: deprecated method
@@ -50,7 +54,33 @@ class App extends Component {
     const web3 = window.web3;
     // Load account
     const accounts = await web3.eth.getAccounts();
+    // web3.eth.defaultAccount = accounts[0]; // meant to resolve error, but create problem with Wallet not connecting
     this.setState({ account: accounts[0] });  // set the first account in list to state
+    // Network id
+    const networkId = await web3.eth.net.getId();
+    const networkData = SocialNetwork.networks[networkId];
+
+    if (networkData) {
+      // create the social network smart contract
+      const socialNetwork = web3.eth.Contract(SocialNetwork.abi, networkData.address)
+      this.setState({ socialNetwork });
+      const postCount = await socialNetwork.methods.postCount().call();
+      this.setState({ postCount });
+      console.log(postCount);
+      // load posts
+      for (let i = 1; i <= postCount; i++) {
+        const post = await socialNetwork.methods.posts(i).call();
+        this.setState({
+          posts: [...this.state.posts, post]
+        }); // ES6 spread posts and add new post on the end
+      }
+      console.log({ posts: this.state.posts })
+    }
+    else {
+      window.alert('SocialNetwork contract not deployed to the blockchain!')
+    }
+    // address
+    // ABI
   }
 
   render() {
@@ -59,27 +89,32 @@ class App extends Component {
         <Navbar account={this.state.account} />
         <div className="container-fluid mt-5">
           <div className="row">
-            <main role="main" className="col-lg-12 d-flex text-center">
+            <main role="main" className="col-lg-12 ml-auto mr-auto" style={{ maxWidth: '500px'}}>
               <div className="content mr-auto ml-auto">
-                <a
-                  href="http://www.dappuniversity.com/bootcamp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img src={logo} className="App-logo" alt="logo" />
-                </a>
-                <h1>Dapp University Starter Kit</h1>
-                <p>
-                  Edit <code>src/components/App.js</code> and save to reload.
-                </p>
-                <a
-                  className="App-link"
-                  href="http://www.dappuniversity.com/bootcamp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  LEARN BLOCKCHAIN <u><b>NOW! </b></u>
-                </a>
+                {this.state.posts.map((post, key) => {
+                  return (
+                    <div className="card mb-4" key={key}>
+                      <div className="card-header">
+                        <small className="text-muted">{post.author}</small>
+                      </div>
+                      <ul id="postList" className="list-group list-group-flush">
+                        <li className="list-group-item">
+                          <p>{post.content}</p>
+                        </li>
+                        <li key={key} className="list-group-item py-2">
+                          <small className="float-left mt-1 text-muted">
+                            TIPS: 1 ETH
+                          </small>
+                          <button className="btn btn-link btn-sm float-right pt-0">
+                            <span>
+                              TIP 0.1 ETH
+                            </span>
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  )
+                })}
               </div>
             </main>
           </div>
