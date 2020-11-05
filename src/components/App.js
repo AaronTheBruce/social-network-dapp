@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import logo from '../logo.png';
 import Web3 from 'web3';
 import './App.css';
 import SocialNetwork from '../abis/SocialNetwork.json';
+import Identicon from 'identicon.js';
 import Navbar from './Navbar';
 // Web3.js connects to the blockchain
 // metamask will connect the browser to the blockchain
@@ -89,12 +89,18 @@ class App extends Component {
         <Navbar account={this.state.account} />
         <div className="container-fluid mt-5">
           <div className="row">
-            <main role="main" className="col-lg-12 ml-auto mr-auto" style={{ maxWidth: '500px'}}>
+            <main role="main" className="col-lg-12 ml-auto mr-auto" style={{ maxWidth: '500px' }}>
               <div className="content mr-auto ml-auto">
                 {this.state.posts.map((post, key) => {
                   return (
                     <div className="card mb-4" key={key}>
                       <div className="card-header">
+                        <img className="ml-2"
+                          width="30"
+                          height="30"
+                          alt="User Identicon"
+                          src={`data:image/png;base64,${new Identicon(this.state.account, 30).toString()}`}
+                        />
                         <small className="text-muted">{post.author}</small>
                       </div>
                       <ul id="postList" className="list-group list-group-flush">
@@ -103,7 +109,7 @@ class App extends Component {
                         </li>
                         <li key={key} className="list-group-item py-2">
                           <small className="float-left mt-1 text-muted">
-                            TIPS: 1 ETH
+                            TIPS: {window.web3.utils.fromWei(post.tipAmount.toString(), 'ether')} ETH
                           </small>
                           <button className="btn btn-link btn-sm float-right pt-0">
                             <span>
